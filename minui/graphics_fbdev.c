@@ -31,6 +31,7 @@
 
 #include "minui.h"
 #include "graphics.h"
+#include "graphics_rotate.h"
 #include "../yamui-tools.h"
 
 static gr_surface fbdev_init(minui_backend *, bool);
@@ -226,14 +227,14 @@ fbdev_init(minui_backend *backend, bool blank)
 	set_displayed_framebuffer(0);
 
 	printf("framebuffer: %d (%d x %d)\n", fb_fd, gr_draw->width,
-	       gr_draw->height);
+	        gr_draw->height);
 
 	if (blank) {
 		fbdev_blank(backend, true);
 		fbdev_blank(backend, false);
 	}
 
-	return gr_draw;
+	return gr_rotate_surface_get(gr_draw);
 }
 
 /* ------------------------------------------------------------------------ */
@@ -281,6 +282,9 @@ fbdev_flip(minui_backend *backend UNUSED)
 
 #endif /* defined(RECOVERY_ALPHA) */
 
+	gr_surface rotated_surface = gr_rotate_surface_get(gr_draw);
+	gr_rotate_update_surface(rotated_surface, gr_draw);
+
 	if (double_buffered) {
 		/* Change gr_draw to point to the buffer currently displayed,
 		 * then flip the driver so we're displaying the other buffer
@@ -293,7 +297,7 @@ fbdev_flip(minui_backend *backend UNUSED)
 		       gr_draw->height * gr_draw->row_bytes);
 	}
 
-	return gr_draw;
+	return rotated_surface;
 }
 
 /* ------------------------------------------------------------------------ */
@@ -310,6 +314,8 @@ fbdev_exit(minui_backend *backend UNUSED)
 	}
 
 	gr_draw = NULL;
+
+	gr_rotate_exit();
 }
 
 /* ------------------------------------------------------------------------ */

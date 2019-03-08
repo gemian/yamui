@@ -42,7 +42,7 @@ typedef struct {
 static GRFont *gr_font = NULL;
 static minui_backend *gr_backend = NULL;
 
-static int overscan_percent  = OVERSCAN_PERCENT;
+static int overscan_percent = OVERSCAN_PERCENT;
 static int overscan_offset_x = 0;
 static int overscan_offset_y = 0;
 
@@ -65,17 +65,17 @@ outside(int x, int y)
 
 /* ------------------------------------------------------------------------ */
 
-int gr_measure(const char *s)
+int gr_measure(const char *s, int scale)
 {
-    return gr_font->cwidth * strlen(s);
+	return gr_font->cwidth * scale * strlen(s);
 }
 
 /* ------------------------------------------------------------------------ */
 
-void gr_font_size(int *x, int *y)
+void gr_font_size(int *x, int *y, int scale)
 {
-    *x = gr_font->cwidth;
-    *y = gr_font->cheight;
+	*x = gr_font->cwidth * scale;
+	*y = gr_font->cheight * scale;
 }
 
 /* ------------------------------------------------------------------------ */
@@ -84,12 +84,12 @@ static void
 text_blend(unsigned char *src_p, int src_row_bytes, unsigned char *dst_p,
 	   int dst_row_bytes, unsigned int width, unsigned int height, unsigned int scale)
 {
-	int i, j;
+	unsigned int i, j;
 
-	for (j = 0; j < height*scale; j++) {
+	for (j = 0; j < height * scale; j++) {
 		unsigned char *px = dst_p;
 
-		for (i = 0; i < width*scale; i++) {
+		for (i = 0; i < width * scale; i++) {
 		    unsigned char *sx = src_p + (i / scale);
 			unsigned char a = *sx;
 
@@ -143,7 +143,7 @@ gr_text(int x, int y, const char *s, int bold, unsigned int scale)
 	while ((off = *s++)) {
 		off -= 32;
 		if (outside(x, y) ||
-		    outside( x + (font->cwidth * scale) - 1, y + (font->cheight * scale) - 1))
+		    outside(x + (font->cwidth * scale) - 1, y + (font->cheight * scale) - 1))
 			break;
 
 		if (off < 96) {

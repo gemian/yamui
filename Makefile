@@ -1,5 +1,5 @@
 PROGRAM = yamui
-MINUI_C_FILES := minui/graphics.c minui/graphics_fbdev.c minui/events.c minui/resources.c
+MINUI_C_FILES := minui/graphics.c minui/graphics_fbdev.c minui/graphics_rotate.c minui/events.c minui/resources.c
 C_FILES := main.c os-update.c $(MINUI_C_FILES)
 OBJS := $(patsubst %.c, %.o, $(C_FILES))
 CC = cc

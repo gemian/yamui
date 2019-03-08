@@ -1,4 +1,4 @@
-#define _BSD_SOURCE	700
+#define _DEFAULT_SOURCE
 
 #include <stdio.h>
 #include <getopt.h>
@@ -63,12 +63,21 @@ static void
 add_text(char *text, unsigned int scale)
 {
 	int i = 0;
+	int x = 20;
+	int y = 20;
 	if (!text)
 		return;
 
+	int text_width = gr_measure(text, scale);
+	if (text_width < gr_fb_width()) {
+	    x = (gr_fb_width() - text_width)/2;
+	}
+
+	y = gr_fb_height()*0.75;
+
 	for (i = 0; i < 2; i++) {
 		gr_color(255, 255, 255, 255);
-		gr_text(20,20, text, 1, scale);
+		gr_text(x, y, text, 1, scale);
 		gr_flip();
 	}
 }
