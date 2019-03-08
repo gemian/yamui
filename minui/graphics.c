@@ -82,47 +82,49 @@ void gr_font_size(int *x, int *y)
 
 static void
 text_blend(unsigned char *src_p, int src_row_bytes, unsigned char *dst_p,
-	   int dst_row_bytes, int width, int height)
+	   int dst_row_bytes, unsigned int width, unsigned int height, unsigned int scale)
 {
 	int i, j;
 
-	for (j = 0; j < height; j++) {
-		unsigned char *sx = src_p, *px = dst_p;
+	for (j = 0; j < height*scale; j++) {
+		unsigned char *px = dst_p;
 
-		for (i = 0; i < width; i++) {
-			unsigned char a = *sx++;
+		for (i = 0; i < width*scale; i++) {
+		    unsigned char *sx = src_p + (i / scale);
+			unsigned char a = *sx;
 
-			if (gr_current_a < 255)
+			if (gr_current_a < 255) {
 				a = ((int)a * gr_current_a) / 255;
-				if (a == 255) {
-					*px++ = gr_current_r;
-					*px++ = gr_current_g;
-					*px++ = gr_current_b;
-					px++;
-				} else if (a > 0) {
-					*px = (*px * (255 - a) +
-					       gr_current_r * a) / 255;
-					px++;
-					*px = (*px * (255 - a) +
-					       gr_current_g * a) / 255;
-					px++;
-					*px = (*px * (255 - a) +
-					       gr_current_b * a) / 255;
-					px++;
-					px++;
-				} else
-					px += 4;
 			}
+			if (a == 255) {
+				*px++ = gr_current_r;
+				*px++ = gr_current_g;
+				*px++ = gr_current_b;
+				px++;
+			} else if (a > 0) {
+				*px = (*px * (255 - a) + gr_current_r * a) / 255;
+				px++;
+				*px = (*px * (255 - a) + gr_current_g * a) / 255;
+				px++;
+				*px = (*px * (255 - a) + gr_current_b * a) / 255;
+				px++;
+				px++;
+			} else {
+				px += 4;
+			}
+		}
 
+		if (j % scale == scale-1) {
 			src_p += src_row_bytes;
-			dst_p += dst_row_bytes;
+		}
+		dst_p += dst_row_bytes;
 	}
 }
 
 /* ------------------------------------------------------------------------ */
 
 void
-gr_text(int x, int y, const char *s, int bold)
+gr_text(int x, int y, const char *s, int bold, unsigned int scale)
 {
 	GRFont *font = gr_font;
 	unsigned off;
@@ -141,7 +143,7 @@ gr_text(int x, int y, const char *s, int bold)
 	while ((off = *s++)) {
 		off -= 32;
 		if (outside(x, y) ||
-		    outside( x +font->cwidth - 1, y + font->cheight - 1))
+		    outside( x + (font->cwidth * scale) - 1, y + (font->cheight * scale) - 1))
 			break;
 
 		if (off < 96) {
@@ -155,11 +157,11 @@ gr_text(int x, int y, const char *s, int bold)
 
 			text_blend(src_p, font->texture->row_bytes, dst_p,
 				   gr_draw->row_bytes, font->cwidth,
-				   font->cheight);
+				   font->cheight, scale);
 
 		}
 
-		x += font->cwidth;
+		x += font->cwidth * scale;
 	}
 }
 
@@ -190,7 +192,7 @@ gr_texticon(int x, int y, GRSurface *icon)
 				x * gr_draw->pixel_bytes;
 
 	text_blend(src_p, icon->row_bytes, dst_p, gr_draw->row_bytes,
-		   icon->width, icon->height);
+		   icon->width, icon->height, 1);
 }
 
 /* ------------------------------------------------------------------------ */

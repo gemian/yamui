@@ -17,6 +17,7 @@ static struct option options[] = {
 	{"progressbar", required_argument, 0, 'p'},
 	{"stopafter",   required_argument, 0, 's'},
 	{"text",        required_argument, 0, 't'},
+	{"font",        required_argument, 0, 'f'},
 	{"help",        no_argument,       0, 'h'},
 	{0, 0, 0, 0},
 };
@@ -49,6 +50,8 @@ print_help(void)
 	printf("         Stop showing the IMAGE(s) after TIME milliseconds\n");
 	printf("  --text=STRING, -t STRING\n");
 	printf("         Show STRING on the screen\n");
+	printf("  --font=N, -t N\n");
+	printf("         Multiply the text font size by N (default 1)\n");
 	printf("  --help, -h\n");
 	printf("         Print this help\n");
 }
@@ -57,7 +60,7 @@ print_help(void)
 
 /* Add text to both sides of the "flip" */
 static void
-add_text(char *text)
+add_text(char *text, unsigned int scale)
 {
 	int i = 0;
 	if (!text)
@@ -65,7 +68,7 @@ add_text(char *text)
 
 	for (i = 0; i < 2; i++) {
 		gr_color(255, 255, 255, 255);
-		gr_text(20,20, text, 1);
+		gr_text(20,20, text, 1, scale);
 		gr_flip();
 	}
 }
@@ -79,6 +82,7 @@ main(int argc, char *argv[])
 	unsigned long int animate_ms = 0;
 	unsigned long long int stop_ms = 0;
 	unsigned long long int progress_ms = 0;
+	unsigned long int scale_font_by = 1;
 	char * text = NULL;
 	char * images[IMAGES_MAX];
 	int image_count = 0;
@@ -86,7 +90,7 @@ main(int argc, char *argv[])
 	int i = 0;
 
 	while (1) {
-		c = getopt_long(argc, argv, "a:p:s:t:h", options,
+		c = getopt_long(argc, argv, "a:p:s:t:f:h", options,
 				&option_index);
 		if (c == -1)
 			break;
@@ -108,6 +112,10 @@ main(int argc, char *argv[])
 			printf("got text \"%s\" to display\n", optarg);
 			text = optarg;
 			break;
+		case 'f':
+			printf("got font mulitplier \"%s\"\n", optarg);
+			scale_font_by = strtoul(optarg, (char **)NULL, 10);
+			break;
 		case 'h':
 			print_help();
 			goto out;
@@ -127,7 +135,7 @@ main(int argc, char *argv[])
 		return -1;
 
 	/* In case there is text to add, add it to both sides of the "flip" */
-	add_text(text);
+	add_text(text, scale_font_by);
 
 	if (image_count == 1 && !progress_ms) {
 		ret = loadLogo(images[0]);
