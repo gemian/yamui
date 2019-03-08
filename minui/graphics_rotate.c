@@ -55,7 +55,6 @@ void gr_rotate_exit(void)
     if (rotated_surface) {
         if (rotated_surface->data)
             free(rotated_surface->data);
-        free(rotated_surface);
     }
     rotated_surface = NULL;
 }
