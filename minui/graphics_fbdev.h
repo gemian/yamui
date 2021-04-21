@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,32 @@
  * limitations under the License.
  */
 
-#ifndef _GRAPHICS_ROTATE_H_
-#define _GRAPHICS_ROTATE_H_
+#pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
+#include <linux/fb.h>
 
-#include "minui.h"
+#include "graphics.h"
+#include "minui/minui.h"
 
-void gr_rotate_exit(void);
-void gr_rotate_init(gr_surface gr_draw);
-void gr_rotate_update_surface(gr_surface from, gr_surface to);
-gr_surface gr_rotate_surface_get(gr_surface gr_draw);
+class MinuiBackendFbdev : public MinuiBackend {
+public:
+	GRSurface *Init() override;
 
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
+	GRSurface *Flip() override;
 
-#endif /* _GRAPHICS_ROTATE_H_ */
+	void Blank(bool) override;
+
+	~MinuiBackendFbdev() override;
+
+	MinuiBackendFbdev();
+
+private:
+	void SetDisplayedFramebuffer(unsigned n);
+
+	GRSurface gr_framebuffer[2];
+	bool double_buffered;
+	GRSurface *gr_draw;
+	int displayed_buffer;
+	fb_var_screeninfo vi;
+	int fb_fd;
+};

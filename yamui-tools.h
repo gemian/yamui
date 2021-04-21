@@ -15,16 +15,16 @@
  * limitations under the License.
  */
 
-#ifndef _YAMUI_TOOLS_H_
-#define _YAMUI_TOOLS_H_
+#pragma once
 
 #include <stdio.h>
 
 #include <linux/input.h>
 
-#define UNUSED	__attribute__((unused))
+#define UNUSED    __attribute__((unused))
 
 void infof(const char *format, ...)  __attribute__ ((format (printf, 1, 2)));
+
 void errorf(const char *format, ...) __attribute__ ((format (printf, 1, 2)));
 
 #ifdef DEBUG
@@ -35,22 +35,23 @@ void errorf(const char *format, ...) __attribute__ ((format (printf, 1, 2)));
 
 static void
 debugf(const char *format, ...) __attribute__ ((format (printf, 1, 2)))
-				UNUSED;
+UNUSED;
 
 static __inline__ void
-debugf(const char *format UNUSED, ...)
-{
+debugf(const char *format UNUSED, ...) {
 
 }
 
 #endif /* !DEBUG */
 
-#define DEV_INPUT_DIR	"/dev/input"
-#define EVENT_PREFIX	"event"
-#define EVENTS_BUF_SIZE	512 /* events */
+#define DEV_INPUT_DIR    "/dev/input"
+#define EVENT_PREFIX    "event"
+#define EVENTS_BUF_SIZE    512 /* events */
 
 typedef int (*device_filter_t)(int fd, const char *name);
+
 int open_fds(int fds[], int *num, int max_num, device_filter_t device_filter);
+
 void close_fds(int fds[], int num);
 
 typedef enum {
@@ -62,6 +63,5 @@ typedef enum {
 int get_exit_status(ret_t r);
 
 typedef ret_t (*event_handler_t)(const struct input_event *ev);
-ret_t handle_events(int fd, event_handler_t event_handler);
 
-#endif /* _YAMUI_TOOLS_H_ */
+ret_t handle_events(int fd, event_handler_t event_handler);

@@ -38,8 +38,7 @@ extern const char *app_name;
 /* ------------------------------------------------------------------------ */
 
 static void
-print_common(const char *format, va_list ap)
-{
+print_common(const char *format, va_list ap) {
 	printf("[%s] ", app_name);
 	vprintf(format, ap);
 }
@@ -48,8 +47,7 @@ print_common(const char *format, va_list ap)
 
 /* Info printing with printf-style format and application name prefix. */
 void
-infof(const char *format, ...)
-{
+infof(const char *format, ...) {
 	va_list ap;
 	int old_errno = errno;
 
@@ -64,8 +62,7 @@ infof(const char *format, ...)
 
 /* perror() with printf-style format and application name prefix. */
 void
-errorf(const char *format, ...)
-{
+errorf(const char *format, ...) {
 	va_list ap;
 	int old_errno = errno;
 
@@ -80,8 +77,7 @@ errorf(const char *format, ...)
 
 /* Open all /dev/input/event* files. */
 int
-open_fds(int fds[], int *num, int max_num, device_filter_t device_filter)
-{
+open_fds(int fds[], int *num, int max_num, device_filter_t device_filter) {
 	DIR *dir;
 	struct dirent *d;
 
@@ -93,12 +89,12 @@ open_fds(int fds[], int *num, int max_num, device_filter_t device_filter)
 	while ((d = readdir(dir))) {
 		char name[256];
 
-		if (strncmp(d->d_name, EVENT_PREFIX, strlen(EVENT_PREFIX)))
+		if (strncmp(d->d_name, EVENT_PREFIX, strlen(EVENT_PREFIX)) != 0)
 			continue; /* Not /dev/input/event* file */
 
 		snprintf(name, sizeof(name), "%s/%s", DEV_INPUT_DIR,
-			 d->d_name);
-		debugf("Processing input ivents file %s", name);
+				 d->d_name);
+		debugf("Processing input events file %s", name);
 		if ((fds[*num] = open(name, O_RDONLY)) == -1) {
 			errorf("Can't open input device %s", name);
 			continue;
@@ -125,8 +121,7 @@ open_fds(int fds[], int *num, int max_num, device_filter_t device_filter)
 /* ------------------------------------------------------------------------ */
 
 void
-close_fds(int fds[], int num)
-{
+close_fds(int fds[], int num) {
 	int i;
 
 	for (i = 0; i < num; i++)
@@ -140,15 +135,14 @@ close_fds(int fds[], int num)
  * ret_continue	- Some other key was pressed or released, continue main loop.
  * ret_failure	- Error happens, terminate the application. */
 ret_t
-handle_events(int fd, event_handler_t event_handler)
-{
+handle_events(int fd, event_handler_t event_handler) {
 	size_t i;
 	ssize_t rv;
 	ret_t ret;
 	struct input_event buf[EVENTS_BUF_SIZE];
 
 	/* Read and ignore event data if OK. */
-	rv = read(fd, (void *)buf, sizeof(buf));
+	rv = read(fd, (void *) buf, sizeof(buf));
 	if (rv < 0) {
 		errorf("Error on read");
 		return ret_failure;
@@ -172,7 +166,6 @@ handle_events(int fd, event_handler_t event_handler)
 
 /* Map functions return status to main() exit status. */
 int
-get_exit_status(ret_t r)
-{
+get_exit_status(ret_t r) {
 	return (r == ret_success) ? EXIT_SUCCESS : EXIT_FAILURE;
 }

@@ -41,15 +41,15 @@
 /*#define DEBUG*/
 #include "yamui-tools.h"
 
-#define NBITS(x)		((((x) - 1) / __BITS_PER_LONG) + 1)
-#define BIT(arr, bit)		((arr[(bit) / __BITS_PER_LONG] >> \
-				 ((bit) % __BITS_PER_LONG)) & 1)
+#define NBITS(x)        ((((x) - 1) / __BITS_PER_LONG) + 1)
+#define BIT(arr, bit)        ((arr[(bit) / __BITS_PER_LONG] >> \
+                 ((bit) % __BITS_PER_LONG)) & 1)
 
-#define MAX_DEVICES		256
-#define DEFAULT_DURATION	3 /* seconds */
+#define MAX_DEVICES        256
+#define DEFAULT_DURATION    3 /* seconds */
 
 /* EXIT_SUCCESS and EXIT_FAILURE are defined in <stdlib.h>. */
-#define EXIT_SIGNAL		2
+#define EXIT_SIGNAL        2
 
 const char *app_name = "powerkey";
 sig_atomic_t volatile running = 1;
@@ -58,21 +58,20 @@ sig_atomic_t volatile running = 1;
 
 /* Check for input device type. Returns 0 if button or touchscreen. */
 static int
-check_device_type(int fd, const char *name)
-{
+check_device_type(int fd, const char *name) {
 	unsigned long bits[EV_MAX][NBITS(KEY_MAX)];
 
 	memset(bits, '\0', sizeof(bits));
 	if (ioctl(fd, EVIOCGBIT(0, EV_MAX), bits[0]) == -1) {
 		errorf("ioctl(, EVIOCGBIT(0, ), ) error on event device %s",
-		       name);
+			   name);
 		return -1;
 	}
 
 	if (BIT(bits[0], EV_KEY)) {
 		if (ioctl(fd, EVIOCGBIT(EV_KEY, KEY_MAX), bits[EV_KEY]) == -1)
 			errorf("ioctl(, EVIOCGBIT(EV_KEY, ), ) error on event"
-			       " device %s", name);
+				   " device %s", name);
 		else if (BIT(bits[EV_KEY], KEY_POWER)) {
 			debugf("Device %s supports needed key events.", name);
 			return 0;
@@ -97,9 +96,8 @@ typedef enum {
 static key_state_t power_key_state = key_up;
 
 static struct timeval *
-get_timeout_value(void)
-{
-	if (power_key_state ==  key_down)
+get_timeout_value(void) {
+	if (power_key_state == key_down)
 		return &key_tv;
 	else /* key_up or key_long_press */
 		return NULL; /* Wait forever */
@@ -108,18 +106,16 @@ get_timeout_value(void)
 /* ------------------------------------------------------------------------ */
 
 static void
-set_timeout_value(int sec)
-{
-	key_tv.tv_sec  = sec;
+set_timeout_value(int sec) {
+	key_tv.tv_sec = sec;
 	key_tv.tv_usec = 0;
 }
 
 /* ------------------------------------------------------------------------ */
 
 static void
-reset_timeout_value(void)
-{
-	key_tv.tv_sec  = duration;
+reset_timeout_value(void) {
+	key_tv.tv_sec = duration;
 	key_tv.tv_usec = 0;
 }
 
@@ -135,8 +131,7 @@ typedef enum {
  * ret_continue	- Some other key was pressed or released, continue main loop.
  */
 static ret_t
-handle_event(const struct input_event *ev)
-{
+handle_event(const struct input_event *ev) {
 	if (ev->type != EV_KEY || ev->code != KEY_POWER) {
 		/* We are not recalculating timeout value in case of
 		 * "interrupted" key_down state because select() properly
@@ -179,11 +174,10 @@ bool wait_key_up = false; /* Wait for key release event. */
  * ret_continue	- Some other key was pressed or released, continue main loop.
  * ret_failure	- Error happens, terminate the application. */
 static ret_t
-handle_timeout(void)
-{
+handle_timeout(void) {
 	if (power_key_state != key_down) { /* Should't be here. */
 		infof("Internal error: timeout in unexpected state: %d.\n",
-		      power_key_state);
+			  power_key_state);
 		return ret_failure;
 	}
 
@@ -198,19 +192,17 @@ handle_timeout(void)
 /* ------------------------------------------------------------------------ */
 
 static void
-signal_handler(int sig UNUSED)
-{
+signal_handler(int sig UNUSED) {
 	running = 0;
 }
 
 /* ------------------------------------------------------------------------ */
 
 static void
-usage(void)
-{
+usage(void) {
 	printf("Usage: yamui-%s [-d <key-press-duration>] [-u]\n", app_name);
 	printf("-d <key-press-duration>\tThe Power key press period "
-	       "in seconds before exit,\n");
+		   "in seconds before exit,\n");
 	printf("\t\t\tdefault value: %d seconds\n", DEFAULT_DURATION);
 	printf("-u\t\t\tExit on the key release event\n\n");
 	printf("Return status:\n");
@@ -222,28 +214,27 @@ usage(void)
 /* ------------------------------------------------------------------------ */
 
 int
-main(int argc, char *argv[])
-{
+main(int argc, char *argv[]) {
 	int opt, fds[MAX_DEVICES], num_fds = 0, ret = EXIT_SIGNAL;
 
 	while ((opt = getopt(argc, argv, "d:hu")) != -1) {
 		switch (opt) {
-		case 'd':
-			duration = atoi(optarg);
-			if ((duration = atoi(optarg)) < 1) {
-				printf("Duration value must be positive.\n");
+			case 'd':
+				duration = atoi(optarg);
+				if ((duration = atoi(optarg)) < 1) {
+					printf("Duration value must be positive.\n");
+					usage();
+					return EXIT_FAILURE;
+				}
+
+				break;
+			case 'u':
+				wait_key_up = true;
+				break;
+			case 'h':
+			default:
 				usage();
 				return EXIT_FAILURE;
-			}
-
-			break;
-		case 'u':
-			wait_key_up = true;
-			break;
-		case 'h':
-		default:
-			usage();
-			return EXIT_FAILURE;
 		}
 	}
 
@@ -256,7 +247,7 @@ main(int argc, char *argv[])
 		return EXIT_FAILURE;
 
 	debugf("Started");
-	signal(SIGINT,  signal_handler);
+	signal(SIGINT, signal_handler);
 	signal(SIGTERM, signal_handler);
 	set_timeout_value(duration);
 
@@ -280,7 +271,7 @@ main(int argc, char *argv[])
 					ret_t r;
 
 					r = handle_events(fds[i],
-							  handle_event);
+									  handle_event);
 					if (r == ret_continue)
 						continue;
 

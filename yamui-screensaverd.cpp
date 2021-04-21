@@ -38,13 +38,13 @@
 #include "yamui-tools.h"
 #include "minui/minui.h"
 
-#define NBITS(x)		((((x) - 1) / __BITS_PER_LONG) + 1)
-#define BIT(arr, bit)		((arr[(bit) / __BITS_PER_LONG] >> \
-				 ((bit) % __BITS_PER_LONG)) & 1)
+#define NBITS(x)        ((((x) - 1) / __BITS_PER_LONG) + 1)
+#define BIT(arr, bit)        ((arr[(bit) / __BITS_PER_LONG] >> \
+                 ((bit) % __BITS_PER_LONG)) & 1)
 
-#define DISPLAY_CONTROL		"/sys/class/graphics/fb0/blank"
-#define MAX_DEVICES		256
-#define DISPLAY_OFF_TIME	25 /* seconds */
+#define DISPLAY_CONTROL        "/sys/class/graphics/fb0/blank"
+#define MAX_DEVICES        256
+#define DISPLAY_OFF_TIME    25 /* seconds */
 
 const char *app_name = "screensaverd";
 sig_atomic_t volatile running = 1;
@@ -53,23 +53,22 @@ sig_atomic_t volatile running = 1;
 
 /* Check for input device type. Returns 0 if button or touchscreen. */
 static int
-check_device_type(int fd, const char *name)
-{
+check_device_type(int fd, const char *name) {
 	unsigned long bits[EV_MAX][NBITS(KEY_MAX)];
 
 	memset(bits, '\0', sizeof(bits));
 	if (ioctl(fd, EVIOCGBIT(0, EV_MAX), bits[0]) == -1) {
 		errorf("ioctl(, EVIOCGBIT(0, ), ) error on event device %s",
-		       name);
+			   name);
 		return -1;
 	}
 
 	if (BIT(bits[0], EV_ABS)) {
 		if (ioctl(fd, EVIOCGBIT(EV_ABS, KEY_MAX), bits[EV_ABS]) == -1)
 			errorf("ioctl(, EVIOCGBIT(EV_ABS, ), ) error on event"
-			       " device %s", name);
+				   " device %s", name);
 		else if (BIT(bits[EV_ABS], ABS_MT_POSITION_X) &&
-			 BIT(bits[EV_ABS], ABS_MT_POSITION_Y)) {
+				 BIT(bits[EV_ABS], ABS_MT_POSITION_Y)) {
 			debugf("Device %s supports multi-touch events.", name);
 			return 0;
 		}
@@ -78,12 +77,12 @@ check_device_type(int fd, const char *name)
 	if (BIT(bits[0], EV_KEY)) {
 		if (ioctl(fd, EVIOCGBIT(EV_KEY, KEY_MAX), bits[EV_KEY]) == -1)
 			errorf("ioctl(, EVIOCGBIT(EV_KEY, ), ) error on event"
-			       " device %s", name);
-		else if (BIT(bits[EV_KEY], KEY_POWER)		||
-			 BIT(bits[EV_KEY], KEY_VOLUMEDOWN)	||
-			 BIT(bits[EV_KEY], KEY_VOLUMEUP)	||
-			 BIT(bits[EV_KEY], KEY_OK)		||
-			 BIT(bits[EV_KEY], KEY_ENTER)) {
+				   " device %s", name);
+		else if (BIT(bits[EV_KEY], KEY_POWER) ||
+				 BIT(bits[EV_KEY], KEY_VOLUMEDOWN) ||
+				 BIT(bits[EV_KEY], KEY_VOLUMEUP) ||
+				 BIT(bits[EV_KEY], KEY_OK) ||
+				 BIT(bits[EV_KEY], KEY_ENTER)) {
 			debugf("Device %s supports needed key events.", name);
 			return 0;
 		}
@@ -96,8 +95,7 @@ check_device_type(int fd, const char *name)
 /* ------------------------------------------------------------------------ */
 
 static int
-sysfs_write_int(const char *fname, int val)
-{
+sysfs_write_int(const char *fname, int val) {
 	FILE *f;
 
 	if (!(f = fopen(fname, "w"))) {
@@ -121,8 +119,7 @@ typedef enum {
 static display_state_t display_state = state_unknown;
 
 static int
-turn_display_on(void)
-{
+turn_display_on(void) {
 	int ret;
 
 	if (display_state == state_on)
@@ -140,8 +137,7 @@ turn_display_on(void)
 /* ------------------------------------------------------------------------ */
 
 static int
-turn_display_off(void)
-{
+turn_display_off(void) {
 	if (display_state == state_off)
 		return 0;
 
@@ -156,16 +152,14 @@ turn_display_off(void)
 /* ------------------------------------------------------------------------ */
 
 static void
-signal_handler(int sig UNUSED)
-{
+signal_handler(int sig UNUSED) {
 	running = 0;
 }
 
 /* ------------------------------------------------------------------------ */
 
 int
-main(void)
-{
+main(void) {
 	int fds[MAX_DEVICES], num_fds = 0, ret = EXIT_SUCCESS;
 
 	if (open_fds(fds, &num_fds, MAX_DEVICES, check_device_type) == -1)
@@ -181,7 +175,7 @@ main(void)
 #endif /* __arm__ */
 
 	debugf("Started");
-	signal(SIGINT,  signal_handler);
+	signal(SIGINT, signal_handler);
 	signal(SIGTERM, signal_handler);
 
 	while (running) { /* Main loop */
@@ -197,7 +191,7 @@ main(void)
 		}
 
 		/* Wait up to 25 seconds. */
-		tv.tv_sec  = DISPLAY_OFF_TIME;
+		tv.tv_sec = DISPLAY_OFF_TIME;
 		tv.tv_usec = 0;
 
 		rv = select(max_fd + 1, &rfds, NULL, NULL, &tv);

@@ -14,44 +14,23 @@
  * limitations under the License.
  */
 
-#ifndef _GRAPHICS_H_
-#define _GRAPHICS_H_
+#pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
+#include "minui/minui.h"
 
-#include <stdbool.h>
+class MinuiBackend {
+public:
+	// Initializes the backend and returns a GRSurface* to draw into.
+	virtual GRSurface *Init() = 0;
 
-#include "minui.h"
+	// Causes the current drawing surface (returned by the most recent call to Flip() or Init()) to
+	// be displayed, and returns a new drawing surface.
+	virtual GRSurface *Flip() = 0;
 
-typedef struct minui_backend {
-	/* Initializes the backend and returns a gr_surface to draw into. */
-	gr_surface (*init)(struct minui_backend *backend, bool blank);
+	// Blank (or unblank) the screen.
+	virtual void Blank(bool) = 0;
 
-	/* Causes the current drawing surface (returned by the most recent
-	 * call to flip() or init()) to be displayed, and returns a new
-	 * drawing surface. */
-	gr_surface (*flip)(struct minui_backend *backend);
+	// Device cleanup when drawing is done.
+	virtual ~MinuiBackend() {};
+};
 
-	/* Blank (or unblank) the screen. */
-	void (*blank)(struct minui_backend *backend, bool blank);
-
-	/* Device cleanup when drawing is done. */
-	void (*exit)(struct minui_backend *backend);
-
-	/* Save screen content to internal buffer. */
-	void (*save)(struct minui_backend *backend);
-
-	/* Restore screen content from internal buffer. */
-	void (*restore)(struct minui_backend *backend);
-} minui_backend;
-
-minui_backend *open_fbdev(void);
-minui_backend *open_adf(void);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
-
-#endif /* _GRAPHICS_H_ */

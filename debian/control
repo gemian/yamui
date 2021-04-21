@@ -4,7 +4,8 @@ Section: admin
 Maintainer: Adam Boardman <adamboardman@gmail.com>
 Build-Depends:
  debhelper (>= 10),
- libpng-dev
+ libpng-dev,
+ libdrm-dev
 Standards-Version: 3.9.8
 Homepage: https://github.com/gemian/yamui
 Vcs-Git: https://github.com/gemian/yamui.git
